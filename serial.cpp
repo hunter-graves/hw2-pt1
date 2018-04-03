@@ -77,16 +77,7 @@ int main( int argc, char **argv )
         //vector<particle_t*> *stepVec = new vector<particle_t*>[step]
     for (int i = 0; i < n; i++)
         bins[binNum(particles[i],bpr)].push_back(particles + i);
-/*
- * for (int i = 0; i < n*n; i++) {
- *  bins if(i <= n
- *
- *
- *
- *
- *
- *
- */
+
 
     for( int p = 0; p < n; p++ )
     {

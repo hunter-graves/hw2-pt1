@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/hunter/Documents/csc698/hw2-pt1/pthread_barrier.c
+stdio.h
+-
+errno.h
+-
+pthread.h
+-
+pthread_barrier.h
+/home/hunter/Documents/csc698/hw2-pt1/pthread_barrier.h
+
+/home/hunter/Documents/csc698/hw2-pt1/pthread_barrier.h
+
