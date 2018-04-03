@@ -70,14 +70,46 @@ int main( int argc, char **argv )
       dmin = 1.0;
 
       // reset each vector at each bin
-      for (int m = 0; m < numbins; m++)
-        bins[m].clear();
-    
-      // Putting particles on 2d bins
-    for (int i = 0; i < n; i++) 
-        bins[binNum(particles[i],bpr)].push_back(particles + i);
+      for (int m = 0; m < numbins; m++) {
+          bins[m].clear();
+      }
+          // Putting particles on 2d bins
+        //vector<particle_t*> *stepVec = new vector<particle_t*>[step]
+   // for (int i = 0; i < n; i++)
+     //   bins[binNum(particles[i],bpr)].push_back(particles + i);
 
+ for (int i = 0; i < n*n; i++) {
+   if(i<=n)
+       bins[binNum(particles[i],bpr)].push_back(particles + i);
 
+     if(i >= n) {
+         int p = (i - n);
+         // Set the acceleration to 0 at each timestep
+         particles[p].ax = particles[p].ay = 0;
+
+         // check the neighbor bins
+         int cbin = binNum(particles[p], bpr);
+         int lowi = -1, highi = 1, lowj = -1, highj = 1;
+         if (cbin < bpr)
+             lowj = 0;
+         if (cbin % bpr == 0)
+             lowi = 0;
+         if (cbin % bpr == (bpr - 1))
+             highi = 0;
+         if (cbin >= bpr * (bpr - 1))
+             highj = 0;
+
+         // 2 loops, for the neighbor bins
+         for (int i = lowi; i <= highi; i++)
+             for (int j = lowj; j <= highj; j++) {
+                 int nbin = cbin + i + bpr * j;
+                 // loop all particles in the bin
+                 for (int k = 0; k < bins[nbin].size(); k++)
+                     apply_force(particles[p], *bins[nbin][k], &dmin, &davg, &navg);
+             }
+     }
+ }
+/*
     for( int p = 0; p < n; p++ )
     {
         // Set the acceleration to 0 at each timestep
@@ -105,7 +137,7 @@ int main( int argc, char **argv )
               apply_force( particles[p], *bins[nbin][k], &dmin, &davg, &navg);
       }
   }
-
+*/
 
   for( int p = 0; p < n; p++ ) 
     move( particles[p] );      
