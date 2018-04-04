@@ -13,7 +13,7 @@
 #define cutoff 0.01
 #define min_r (cutoff / 100)
 #define dt 0.0005
-
+using namespace std;
 //
 //  global variables
 //
@@ -23,8 +23,9 @@ FILE *fsave,*fsum;
 pthread_barrier_t barrier;
 pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
 double gabsmin=1.0,gabsavg=0.0;
-std::vector<particle_t*> *bins;
 int bpr, numbins;
+vector<particle_t*> *bins;
+//double size = sqrt(density*n);
 pthread_mutex_t *binsMutex;
 
 //
@@ -47,13 +48,9 @@ void *thread_routine( void *pthread_id )
     double dmin,absmin=1.0,davg,absavg=0.0;
     int thread_id = *(int*)pthread_id;
 
-    int particles_per_thread = (numbins + n_threads - 1) / n_threads;
-    int first = min(thread_id * particles_per_thread, numbins);
-    int last = min((thread_id + 1) * particles_per_thread, numbins);
-
-//    int particles_per_thread = (n + n_threads - 1) / n_threads;
-//    int first = min(  thread_id    * particles_per_thread, n );
-//    int last  = min( (thread_id+1) * particles_per_thread, n );
+    int particleBinThreads = (numbins+n_threads-1)/n_threads;
+    int firstBin = min(particleBinThreads*thread_id, numbins);
+    int lastBin = min((thread_id + 1)*particleBinThreads, numbins);
 
     //
     //  simulate a number of time steps
@@ -66,12 +63,12 @@ void *thread_routine( void *pthread_id )
         //
         //  compute forces
         //
-        for( int particle_index = first; particle_index < last; particle_index++ )
+        for( int i = firstBin; i < lastBin; i++ )
         {
-            particles[particle_index].ax = particles[particle_index].ay = 0;
+            particles[i].ax = particles[i].ay = 0;
 
-            // find current particle's bin, handle boundaries
-            int cbin = binNum(particles[particle_index], bpr);
+
+            int cbin = binNum(particles[i], bpr);
             int lowi = -1, highi = 1, lowj = -1, highj = 1;
 
             if (cbin < bpr)
@@ -88,7 +85,7 @@ void *thread_routine( void *pthread_id )
                 {
                     int nbin = cbin + i + bpr * j;
                     for (int k = 0; k < bins[nbin].size(); k++)
-                        apply_force(particles[particle_index], *bins[nbin][k], &dmin, &davg, &navg);
+                        apply_force(particles[i], *bins[nbin][k], &dmin, &davg, &navg);
                 }
         }
 
@@ -109,7 +106,7 @@ void *thread_routine( void *pthread_id )
         //
         //  move particles
         //
-        for( int i = first; i < last; i++ )
+        for( int i = firstBin; i < lastBin; i++ )
             move( particles[i] );
 
         pthread_barrier_wait( &barrier );
@@ -166,15 +163,14 @@ int main( int argc, char **argv )
     if( find_option( argc, argv, "-no" ) != -1 )
         no_output = 1;
 
-    // init bins and mutex
-    bins = new std::vector<particle_t*>[numbins];
-    binsMutex = new pthread_mutex_t[numbins];
-    for (int m = 0; m < numbins; m++)
-        pthread_mutex_init(&binsMutex[m], NULL);
-
     //
     //  allocate resources
     //
+
+    //bins = new vector<particle_t*>[numbins];
+    //binsMutex = new pthread_mutex_t[numbins];
+    //for (int m = 0; m < numbins; m++)
+    //    pthread_mutex_init(&binsMutex[m], NULL);
     particles = (particle_t*) malloc( n * sizeof(particle_t) );
     set_size( n );
     init_particles( n, particles );
